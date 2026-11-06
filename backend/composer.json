@@ -1,0 +1,52 @@
+{
+    "name": "products/import",
+    "description": "Импорт и каталог товаров: Slim, Doctrine, Symfony Messenger",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.2",
+        "doctrine/dbal": "^3.9",
+        "doctrine/migrations": "^3.8",
+        "doctrine/orm": "^2.20",
+        "firebase/php-jwt": "^7.0",
+        "monolog/monolog": "^3.8",
+        "php-amqplib/php-amqplib": "^3.7",
+        "php-di/php-di": "^7.0",
+        "php-di/slim-bridge": "^3.4",
+        "phpoffice/phpspreadsheet": "^2.2",
+        "slim/psr7": "^1.7",
+        "slim/slim": "^4.14",
+        "symfony/cache": "^7.2",
+        "symfony/console": "^7.2",
+        "symfony/event-dispatcher": "^7.2",
+        "symfony/messenger": "^7.2",
+        "vlucas/phpdotenv": "^5.6"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.64",
+        "phpstan/phpstan": "^2.0",
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/",
+            "App\\Migrations\\": "migrations/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "App\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "phpstan": "phpstan analyse --memory-limit=1G",
+        "cs": "php-cs-fixer fix --dry-run --diff"
+    }
+}

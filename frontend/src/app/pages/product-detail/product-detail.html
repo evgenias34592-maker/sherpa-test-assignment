@@ -1,0 +1,59 @@
+<a class="back" routerLink="/products" [queryParams]="listQuery$ | async">← К списку</a>
+
+@if (view$ | async; as view) {
+  @if (view.status === 'loading') {
+    <p>Загружаем карточку…</p>
+  }
+  @if (view.status === 'error') {
+    <p class="error" role="alert">{{ view.error }}</p>
+  }
+  @if (view.product; as product) {
+    <article class="card">
+      <div class="gallery">
+        @if (product.images.length > 0) {
+          <img [src]="product.images[selected()].publicUrl" [alt]="product.name" />
+          <div class="thumbs">
+            @for (image of product.images; track image.path; let index = $index) {
+              <button type="button" [class.active]="selected() === index" (click)="choose(index)">
+                <img [src]="image.publicUrl" [alt]="product.name" />
+              </button>
+            }
+          </div>
+        } @else {
+          <div class="missing">Нет локальных изображений</div>
+        }
+      </div>
+      <div class="info">
+        <p class="eyebrow">{{ product.externalCode }}</p>
+        <h1>{{ product.name }}</h1>
+        <div class="price">
+          <strong>{{ money(product.price) }}</strong>
+          <span>Скидка {{ discount(product.discount) }}</span>
+        </div>
+        <p class="meta">Обновлён {{ updated(product.updatedAt) }}</p>
+        <p class="description">{{ product.description || 'Описание не заполнено' }}</p>
+        <h2>Дополнительные поля</h2>
+        @if (product.attributes.length === 0) {
+          <p>Нет дополнительных атрибутов.</p>
+        } @else {
+          <dl>
+            @for (attribute of product.attributes; track attribute.key) {
+              <div>
+                <dt>{{ attribute.key }}</dt>
+                <dd>{{ attribute.value }}</dd>
+              </div>
+            }
+          </dl>
+        }
+        @if (product.images.length > 0) {
+          <h2>Исходные ссылки</h2>
+          <ul>
+            @for (image of product.images; track image.url) {
+              <li><a [href]="image.url" target="_blank" rel="noopener noreferrer">{{ image.url }}</a></li>
+            }
+          </ul>
+        }
+      </div>
+    </article>
+  }
+}

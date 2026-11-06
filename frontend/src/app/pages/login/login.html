@@ -1,0 +1,50 @@
+<main class="login">
+  <section class="panel">
+    <p class="eyebrow">Каталог товаров</p>
+    <h1>Вход</h1>
+    <p class="lead">Импорт прайса, карточки и поиск по загруженному каталогу.</p>
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input
+          matInput
+          type="email"
+          name="email"
+          formControlName="email"
+          autocomplete="username"
+          inputmode="email"
+          autocapitalize="none"
+          autocorrect="off"
+          spellcheck="false"
+          maxlength="180"
+          [attr.aria-invalid]="emailError() ? true : null"
+        />
+        @if (emailError(); as message) {
+          <mat-error>{{ message }}</mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Пароль</mat-label>
+        <input
+          matInput
+          type="password"
+          name="password"
+          formControlName="password"
+          autocomplete="current-password"
+          spellcheck="false"
+          maxlength="200"
+          [attr.aria-invalid]="passwordError() ? true : null"
+        />
+        @if (passwordError(); as message) {
+          <mat-error>{{ message }}</mat-error>
+        }
+      </mat-form-field>
+      @if (error(); as message) {
+        <p class="error" role="alert">{{ message }}</p>
+      }
+      <button mat-flat-button color="primary" type="submit" [disabled]="pending()">
+        {{ pending() ? 'Входим…' : 'Войти' }}
+      </button>
+    </form>
+  </section>
+</main>

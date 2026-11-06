@@ -1,0 +1,166 @@
+.eyebrow {
+  margin: 0;
+  color: #0f6e56;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 4px 0;
+  font-size: 36px;
+}
+
+.heading p:last-child {
+  max-width: 640px;
+  color: #5d564c;
+}
+
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 20px 0;
+  max-width: 100%;
+}
+
+.drop {
+  display: grid;
+  place-items: center;
+  flex: 1 1 280px;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 88px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+  text-align: center;
+}
+
+.drop:hover {
+  border-color: #0f6e56;
+}
+
+input {
+  display: none;
+}
+
+:host {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.report {
+  min-width: 0;
+  max-width: 100%;
+  padding: var(--card-padding);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.summary {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.counts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.counts li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  background: var(--surface-muted);
+  border-radius: var(--radius);
+}
+
+.counts span {
+  min-width: 0;
+}
+
+h2 {
+  margin: 18px 0 0;
+  font-size: 16px;
+}
+
+.issues {
+  display: grid;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.issues li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 12px;
+  min-width: 0;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.issues span {
+  justify-self: end;
+  color: #6d655b;
+  text-align: right;
+}
+
+.issues code,
+.issues p {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.issues code {
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+}
+
+@media (min-width: 640px) {
+  .counts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 860px) {
+  .counts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .issues li {
+    grid-template-columns: 92px minmax(0, 1.2fr) 160px minmax(0, 1.3fr);
+    align-items: start;
+  }
+
+  .issues span {
+    justify-self: start;
+    text-align: left;
+  }
+
+  .issues code,
+  .issues p {
+    grid-column: auto;
+  }
+}
+
+.error {
+  color: #9f2d2d;
+}

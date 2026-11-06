@@ -1,0 +1,67 @@
+<section class="heading">
+  <div>
+    <p class="eyebrow">Каталог</p>
+    <h1>Товары</h1>
+  </div>
+  <button mat-stroked-button type="button" (click)="download()">Экспорт .xlsx</button>
+</section>
+@if (exportError()) {
+  <p class="error" role="alert">{{ exportError() }}</p>
+}
+
+<form class="filters" [formGroup]="filters" (ngSubmit)="search()">
+  <mat-form-field class="name" appearance="outline" subscriptSizing="dynamic">
+    <mat-label>Наименование</mat-label>
+    <input matInput formControlName="name" />
+  </mat-form-field>
+  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+    <mat-label>Цена от</mat-label>
+    <input matInput formControlName="priceMin" inputmode="decimal" />
+  </mat-form-field>
+  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+    <mat-label>Цена до</mat-label>
+    <input matInput formControlName="priceMax" inputmode="decimal" />
+  </mat-form-field>
+  <div class="actions">
+    <button mat-flat-button color="primary" type="submit">Найти</button>
+    <button mat-button type="button" (click)="reset()">Сбросить</button>
+  </div>
+</form>
+
+@if (vm$ | async; as vm) {
+  @if (vm.loading) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+  @if (vm.error) {
+    <p class="error" role="alert">{{ vm.error }}</p>
+  }
+  @if (!vm.loading && vm.products.length === 0) {
+    <p class="empty">Ничего не найдено. Импортируйте файл или измените фильтр.</p>
+  }
+  <div class="grid">
+    @for (product of vm.products; track product.id) {
+      <a class="card" [routerLink]="['/products', product.id]">
+        <div class="cover" [class.placeholder]="!product.cover">
+          @if (product.cover) {
+            <img [src]="product.cover" [alt]="product.name" />
+          }
+        </div>
+        <div class="body">
+          <h2>{{ product.name }}</h2>
+          <p>{{ product.externalCode }}</p>
+          <div class="meta">
+            <strong>{{ money(product.price) }}</strong>
+            <span>{{ discount(product.discount) }}</span>
+          </div>
+        </div>
+      </a>
+    }
+  </div>
+  <mat-paginator
+    [length]="vm.total"
+    [pageIndex]="vm.page - 1"
+    [pageSize]="vm.limit"
+    [pageSizeOptions]="[10, 20, 50]"
+    (page)="onPage($event)"
+  />
+}

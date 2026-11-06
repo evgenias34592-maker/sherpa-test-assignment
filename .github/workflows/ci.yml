@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: products_test
+          POSTGRES_USER: products
+          POSTGRES_PASSWORD: products
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U products -d products_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: pdo_pgsql, zip, curl, gd, sockets, mbstring, fileinfo
+          coverage: none
+      - name: Install dependencies
+        working-directory: backend
+        run: composer install --no-interaction --prefer-dist
+      - name: Tests
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://products:products@127.0.0.1:5432/products_test
+        run: vendor/bin/phpunit
+      - name: PHPStan
+        working-directory: backend
+        run: vendor/bin/phpstan analyse --memory-limit=1G
+      - name: Coding style
+        working-directory: backend
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install and test
+        working-directory: frontend
+        run: npm ci && npm run test -- --watch=false
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build PHP image
+        run: docker build -f docker/php/Dockerfile --target app .

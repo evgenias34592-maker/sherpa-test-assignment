@@ -1,0 +1,17 @@
+<div class="shell">
+  <header>
+    <a class="brand" routerLink="/products">Склад<span>импорта</span></a>
+    <div class="account">
+      <span>{{ user?.name }}</span>
+      <button type="button" (click)="logout()">Выйти</button>
+    </div>
+    <nav>
+      <a routerLink="/products" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Товары</a>
+      <a routerLink="/import" routerLinkActive="active">Импорт</a>
+    </nav>
+  </header>
+  <main>
+    <app-import-status />
+    <router-outlet />
+  </main>
+</div>

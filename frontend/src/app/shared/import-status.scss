@@ -1,0 +1,41 @@
+.status {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 16px;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: var(--card-padding);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+mat-progress-bar {
+  grid-column: 1 / -1;
+}
+
+div {
+  display: grid;
+  gap: 2px;
+}
+
+span,
+a {
+  color: #5d564c;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .status {
+    grid-template-columns: 1fr;
+  }
+}
+
+.failed {
+  border-color: #e3b4b4;
+}
+
+.done {
+  border-color: #b7d7cb;
+}

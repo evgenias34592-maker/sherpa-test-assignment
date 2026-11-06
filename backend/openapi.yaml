@@ -1,0 +1,428 @@
+openapi: 3.0.3
+info:
+  title: Products Import API
+  version: 1.0.0
+  description: |
+    Импорт каталога из xlsx и чтение товаров.
+    Запись и чтение каталога требуют JWT, кроме `/api/health`, `/api/auth/login` и этой документации.
+servers:
+  - url: /
+paths:
+  /api/health:
+    get:
+      summary: Проверка приложения, базы и брокера
+      tags: [System]
+      responses:
+        "200":
+          description: Все зависимости доступны
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        "503":
+          description: База или брокер недоступны
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /api/auth/login:
+    post:
+      summary: Вход и выдача JWT
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        "200":
+          description: Токен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        "401":
+          description: Неверные учётные данные. Ответ одинаковый и для неизвестного email, и для неверного пароля
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "422":
+          description: Пустые поля, некорректный email или слишком длинный пароль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Слишком много попыток
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/products:
+    get:
+      summary: Список товаров с серверной пагинацией и фильтрами
+      tags: [Products]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - in: query
+          name: name
+          schema: { type: string }
+          description: Поиск по подстроке наименования
+        - in: query
+          name: priceMin
+          schema: { type: number }
+        - in: query
+          name: priceMax
+          schema: { type: number }
+      responses:
+        "200":
+          description: Страница товаров
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductPageResponse'
+        "401":
+          description: Нет токена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/products/export:
+    get:
+      summary: Экспорт текущей выборки в xlsx
+      tags: [Products]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: name
+          schema: { type: string }
+        - in: query
+          name: priceMin
+          schema: { type: number }
+        - in: query
+          name: priceMax
+          schema: { type: number }
+      responses:
+        "200":
+          description: Книга Excel по текущему фильтру, не больше 5000 строк
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema: { type: string, format: binary }
+        "422":
+          description: В выборке больше 5000 товаров
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/products/{id}:
+    get:
+      summary: Карточка товара
+      tags: [Products]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Товар, атрибуты и изображения
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetailResponse'
+        "404":
+          description: Не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/imports:
+    post:
+      summary: Поставить xlsx в очередь импорта
+      tags: [Import]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "202":
+          description: Задача создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportJobResponse'
+        "413":
+          description: Файл слишком большой
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "422":
+          description: Файл не прошёл проверку
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Превышен лимит импорта
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Брокер недоступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/imports/{id}:
+    get:
+      summary: Статус и отчёт импорта
+      tags: [Import]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Прогресс, счётчики и ошибки строк
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportJobResponse'
+        "404":
+          description: Задача не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+    HealthResponse:
+      type: object
+      required: [status, database, queue]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+        database:
+          type: string
+          enum: [ok, down]
+        queue:
+          type: string
+          enum: [ok, down]
+    LoginResponse:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+    PaginationMeta:
+      type: object
+      required: [page, limit, total, totalPages]
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+    ProductSummary:
+      type: object
+      required: [id, externalCode, name, price, discount, updatedAt]
+      properties:
+        id:
+          type: integer
+        externalCode:
+          type: string
+        name:
+          type: string
+        price:
+          type: string
+          description: Десятичная сумма с двумя знаками
+        discount:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+        cover:
+          type: string
+          nullable: true
+          description: Публичный URL обложки
+    ProductAttribute:
+      type: object
+      required: [key, value]
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+    ProductImage:
+      type: object
+      required: [url, path, publicUrl, sortOrder]
+      properties:
+        url:
+          type: string
+        path:
+          type: string
+        publicUrl:
+          type: string
+        sortOrder:
+          type: integer
+    ProductDetail:
+      allOf:
+        - $ref: '#/components/schemas/ProductSummary'
+        - type: object
+          required: [description, attributes, images]
+          properties:
+            description:
+              type: string
+            attributes:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProductAttribute'
+            images:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProductImage'
+    ProductPageResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductSummary'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    ProductDetailResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ProductDetail'
+    ImportIssue:
+      type: object
+      required: [row, message, level]
+      properties:
+        row:
+          type: integer
+          minimum: 1
+        externalCode:
+          type: string
+          nullable: true
+        message:
+          type: string
+        level:
+          type: string
+          enum: [error, warning]
+    ImportJob:
+      type: object
+      required:
+        - id
+        - status
+        - originalFilename
+        - totalRows
+        - processedRows
+        - createdCount
+        - updatedCount
+        - errorCount
+        - warningCount
+        - progress
+        - errors
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        originalFilename:
+          type: string
+        totalRows:
+          type: integer
+          minimum: 0
+        processedRows:
+          type: integer
+          minimum: 0
+        createdCount:
+          type: integer
+          minimum: 0
+        updatedCount:
+          type: integer
+          minimum: 0
+        errorCount:
+          type: integer
+          minimum: 0
+        warningCount:
+          type: integer
+          minimum: 0
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImportIssue'
+        message:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        finishedAt:
+          type: string
+          format: date-time
+          nullable: true
+    ImportJobResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ImportJob'

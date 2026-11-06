@@ -1,0 +1,11 @@
+.git
+.idea
+.vscode
+.env
+backend/vendor
+backend/var
+backend/.phpunit.cache
+frontend/node_modules
+frontend/dist
+frontend/.angular
+agent-transcripts

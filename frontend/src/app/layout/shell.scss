@@ -1,0 +1,95 @@
+.shell {
+  min-height: 100vh;
+}
+
+header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px 28px;
+  padding: 14px 32px;
+  background: #1c1915;
+  color: #f7f3ec;
+}
+
+.brand {
+  grid-column: 1;
+  grid-row: 1;
+  color: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.brand span {
+  margin-left: 8px;
+  color: #8dceba;
+  font-weight: 600;
+}
+
+nav {
+  display: flex;
+  grid-column: 2;
+  grid-row: 1;
+  gap: 8px;
+}
+
+nav a {
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  color: #d9d0c3;
+  text-decoration: none;
+}
+
+nav a.active,
+nav a:hover {
+  background: #34302a;
+  color: white;
+}
+
+.account {
+  display: flex;
+  grid-column: 3;
+  grid-row: 1;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  color: #d9d0c3;
+}
+
+button {
+  border: 1px solid #6d655b;
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+main {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 48px;
+}
+
+@media (max-width: 720px) {
+  header {
+    grid-template-columns: 1fr auto;
+    padding: 12px 16px;
+  }
+
+  .account {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  main {
+    width: min(1180px, calc(100% - 24px));
+    padding-top: 16px;
+  }
+}

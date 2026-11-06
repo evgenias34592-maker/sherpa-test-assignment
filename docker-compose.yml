@@ -1,0 +1,89 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "127.0.0.1:${DB_PORT}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/01-test-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "127.0.0.1:15672:15672"
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: app
+    env_file: .env
+    environment:
+      RUN_MIGRATIONS: "1"
+    volumes:
+      - storage:/var/www/storage
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /var/www/storage/.migrations-ready"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: app
+    command: ["php", "bin/worker.php"]
+    env_file: .env
+    environment:
+      RUN_MIGRATIONS: "0"
+    volumes:
+      - storage:/var/www/storage
+    depends_on:
+      app:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+    ports:
+      - "127.0.0.1:${APP_PORT}:80"
+    volumes:
+      - storage:/var/www/storage:ro
+    depends_on:
+      - app
+
+volumes:
+  pgdata:
+  rabbitmqdata:
+  storage:

@@ -1,0 +1,55 @@
+<section class="heading">
+  <p class="eyebrow">Обмен</p>
+  <h1>Импорт товаров</h1>
+  <p>Файл .xlsx ставится в очередь. Некорректные строки не останавливают остальные и попадают в отчёт.</p>
+</section>
+
+<form (submit)="$event.preventDefault(); submit()">
+  <label class="drop">
+    <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" (change)="onFile($event)" />
+    <span>{{ selected()?.name || 'Выберите файл .xlsx' }}</span>
+  </label>
+  <button mat-flat-button color="primary" type="submit" [disabled]="!selected()">Загрузить</button>
+</form>
+
+@if (view$ | async; as view) {
+  @if (view.state === 'uploading') {
+    <p>Отправляем файл…</p>
+  }
+  @if (view.error) {
+    <p class="error" role="alert">{{ view.error }}</p>
+  }
+  @if (view.job; as job) {
+    <section class="report">
+      <div class="summary">
+        <strong>{{ job.status === 'completed' ? 'Готово' : job.status === 'failed' ? 'Ошибка файла' : 'Обработка' }}</strong>
+        <span>{{ job.progress }}%</span>
+      </div>
+      <mat-progress-bar [mode]="job.status === 'pending' ? 'indeterminate' : 'determinate'" [value]="job.progress" />
+      <ul class="counts">
+        <li><span>Строк</span><strong>{{ job.totalRows }}</strong></li>
+        <li><span>Обработано</span><strong>{{ job.processedRows }}</strong></li>
+        <li><span>Создано</span><strong>{{ job.createdCount }}</strong></li>
+        <li><span>Обновлено</span><strong>{{ job.updatedCount }}</strong></li>
+        <li><span>Ошибок</span><strong>{{ job.errorCount }}</strong></li>
+        <li><span>Предупреждений</span><strong>{{ job.warningCount }}</strong></li>
+      </ul>
+      @if (job.status === 'failed' && job.message) {
+        <p class="error">{{ job.message }}</p>
+      }
+      @if (job.errors.length > 0) {
+        <h2>Отчёт по строкам</h2>
+        <ul class="issues">
+          @for (issue of job.errors; track issue.row + issue.message) {
+            <li>
+              <strong>Строка {{ issue.row }}</strong>
+              <span>{{ issue.level === 'warning' ? 'Предупреждение' : 'Ошибка' }}</span>
+              <code>{{ issue.externalCode || '—' }}</code>
+              <p>{{ issue.message }}</p>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+}

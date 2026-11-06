@@ -1,0 +1,10 @@
+@if (job$ | async; as job) {
+  <section class="status" [class.failed]="job.status === 'failed'" [class.done]="job.status === 'completed'">
+    <div>
+      <strong>{{ title(job) }}</strong>
+      <span>{{ job.processedRows }} из {{ job.totalRows }} · ошибок {{ job.errorCount }} · предупреждений {{ job.warningCount }}</span>
+    </div>
+    <mat-progress-bar [mode]="job.status === 'pending' ? 'indeterminate' : 'determinate'" [value]="job.progress" />
+    <a routerLink="/import">Отчёт</a>
+  </section>
+}

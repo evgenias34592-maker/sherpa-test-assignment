@@ -1,0 +1,53 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use App\Bootstrap;
+use App\Infrastructure\Migrator;
+use App\Infrastructure\Seeder;
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+$container = Bootstrap::container();
+$application = new Application('products');
+
+$migrate = new Command('migrate');
+$migrate->setDescription('Применяет миграции базы данных');
+$migrate->setCode(static function (InputInterface $input, OutputInterface $output) use ($container): int {
+    unset($input);
+    $container->get(Migrator::class)->migrate();
+    $output->writeln('Migrations applied');
+
+    return Command::SUCCESS;
+});
+
+$admin = new Command('admin:ensure');
+$admin->setDescription('Создаёт администратора из переменных окружения, если его ещё нет');
+$admin->setCode(static function (InputInterface $input, OutputInterface $output) use ($container): int {
+    unset($input);
+    $container->get(Seeder::class)->ensureAdmin();
+    $output->writeln('Admin is ready');
+
+    return Command::SUCCESS;
+});
+
+$seed = new Command('seed');
+$seed->setDescription('Наполняет каталог фикстурами товаров, атрибутов и изображений');
+$seed->setCode(static function (InputInterface $input, OutputInterface $output) use ($container): int {
+    unset($input);
+    $seeder = $container->get(Seeder::class);
+    $seeder->ensureAdmin();
+    $created = $seeder->seedCatalog();
+    $output->writeln('Seeded products: ' . $created);
+
+    return Command::SUCCESS;
+});
+
+$application->addCommands([$migrate, $admin, $seed]);
+$application->setDefaultCommand('migrate', false);
+exit($application->run());

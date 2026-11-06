@@ -1,0 +1,76 @@
+@use '@angular/material' as mat;
+
+@import '@fontsource/manrope/cyrillic-400.css';
+@import '@fontsource/manrope/cyrillic-600.css';
+@import '@fontsource/manrope/cyrillic-700.css';
+@import '@fontsource/manrope/latin-400.css';
+@import '@fontsource/manrope/latin-600.css';
+@import '@fontsource/manrope/latin-700.css';
+
+html {
+  @include mat.theme((
+    color: (
+      primary: mat.$green-palette,
+      tertiary: mat.$orange-palette,
+      theme-type: light,
+    ),
+    typography: 'Manrope, sans-serif',
+    density: 0,
+  ));
+
+  --radius: 16px;
+  --card-padding: 20px;
+  --surface: #fffdf8;
+  --surface-muted: #f7f3ec;
+  --line: #e4d8c4;
+  --placeholder: #efe7da;
+  --mat-sys-corner-extra-small: var(--radius);
+  --mat-sys-corner-small: var(--radius);
+  --mat-sys-corner-medium: var(--radius);
+  --mat-sys-corner-large: var(--radius);
+  --mat-sys-corner-extra-large: var(--radius);
+  --mat-sys-corner-full: var(--radius);
+  --mat-button-filled-container-shape: var(--radius);
+  --mat-button-outlined-container-shape: var(--radius);
+  --mat-button-protected-container-shape: var(--radius);
+  --mat-button-text-container-shape: var(--radius);
+  --mat-button-tonal-container-shape: var(--radius);
+  --mat-form-field-outlined-container-shape: var(--radius);
+  --mat-form-field-filled-container-shape: var(--radius);
+  --mat-snack-bar-container-shape: var(--radius);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: #f4f0e8;
+  color: #1c1915;
+  font-family: Manrope, 'Segoe UI', sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+app-root,
+app-shell,
+app-login,
+app-import-page,
+app-product-list,
+app-product-detail,
+app-import-status {
+  display: block;
+  max-width: 100%;
+}
+
+.mat-mdc-paginator-container {
+  flex-wrap: wrap;
+  row-gap: 8px;
+  padding: 8px 0;
+}
